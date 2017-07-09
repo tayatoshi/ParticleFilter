@@ -1,0 +1,157 @@
+\documentclass[dvipdfmx,uplatex,10pt]{jsarticle}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{hyperref}
+  \makeatletter
+    \renewcommand{\theequation}{
+    \thesection.\arabic{equation}}
+    \@addtoreset{equation}{section}
+  \makeatother
+\begin{document}
+\title{粒子フィルタ\\ {\normalsize Particle Filter}}
+\author{Toshikazu Tayanagi}
+\maketitle
+
+%-------------------------------------------------------------------
+\section{はじめに}
+一般化状態空間モデルは以下のようになる.状態方程式、観測方程式は共に非線形・非ガウスである.\\
+$\upsilon_{t}$と$\omega_{t}$は誤差項,$\xi_{s}$と$\xi_{m}$は係数である.
+\begin{align}
+  x_{t}&=f_{t}(x_{t-1},\xi_{s},\upsilon_{t})\\
+  y_{t}&=h_{t}(x_{t},\xi_{m},\omega_{t})
+\end{align}
+%-------------------------------------------------------------------
+\section{デルタ関数}
+ディラックのデルタ関数\footnotemark[1]は以下の様に定義される.
+\begin{align}
+  \delta(x)&=
+  \begin{cases}
+	\infty(x=0)\\
+	0(x\neq 0)
+  \end{cases}\\
+  \int_{-\infty}^{\infty}\delta (x) dx&=1\\
+  \int_{-\infty}^{\infty}f(x)\delta (x)dx&=f(0)\\
+  \int_{-\infty}^{\infty}f(x)\delta(x-a)dx&=f(a)
+\end{align}
+\footnotetext[1]{
+  デルタ関数は以下の様に正規分布の分散無限小の極限とも定義できる.
+\begin{equation*}
+  \delta(x-\mu)=\lim_{\sigma^{2}\rightarrow +0}\frac{1}{\sqrt{2\pi \sigma^{2}}}\exp\left( -\frac{(x-\mu)^{2}}{2\sigma^{2}}\right)
+\end{equation*}
+}
+(2.1)式から$x=0$で無限大、それ以外で$0$.\\
+(2.2)式から$x=0$含む区間で積分すると$1$となる.\\
+(2.3)式は$x\neq0$で$\delta(x)=0$より$f(x)$は$x\neq0$ではデルタ関数に無効化されている\\
+(2.4)式は原点からずらしていることを表す.$\delta(x-a)$という形を使うことで、$x-a=0$となるところでデルタ関数が発現してること表す.\\
+(2.4)式から以下の性質が示せる.
+\begin{align}
+  \int_{-\infty}^{\infty}f(x)\delta(x-x^{(i)})dx&=f(x^{(i)})\\
+  \int_{-\infty}^{\infty}f(x)\left\{\frac{1}{N}\sum_{i=1}^{N}\delta(x-x^{(i)})\right\}dx&=\frac{1}{N}\sum_{i=1}^{N}f(x^{(i)})
+\end{align}
+%-------------------------------------------------------------------
+\section{アンサンブル近似}
+アンサンブル近似ではある確率変数xの確率分布を$N$個のサンプル集合$\{x^{(i)}\}$を用いて以下の様に近似する.
+\begin{equation}
+  p(x) \doteq \footnotemark[2] \frac{1}{N}\sum_{i=1}^{N}\delta{x-x_{(i)}}
+\end{equation}
+$x$が$p(x)$に従うとき,(2.4)式より
+\begin{align}
+  E[f(x)]
+  &=\int f(x)p(x)dx\nonumber\\
+  &\doteq \int f(x)\left(\frac{1}{N}\sum_{i=1}^{N}\delta(x-x^{(i)})\right)dx \nonumber\\ 
+  &=\frac{1}{N}\sum_{i=1}^{N}\int f(x)\delta(x-x^{(i)})dx\nonumber \\
+  &=\frac{1}{N}\sum_{i=1}^{N}f(x^{(i)})
+\end{align}
+と近似できる.
+\footnotetext[2]{$\doteq$ はここではモンテカルロ近似を表す}
+%-------------------------------------------------------------------
+\section{粒子フィルタ}
+パーティクルフィルタ、逐次モンテカルロフィルタと呼ばれたりもする。\\
+「状態ベクトル$x_{t}^{(i)}$とその点に対応する『尤度』$w_{t}^{(i)}$の集合で近似する」\\
+\subsection{一期先予測}
+各アンサンブルメンバー$x_{t-1|t-1}^{(i)}$を状態方程式に基づいて更新し、予測分布のアンサンブル$\{x_{t|t-1}^{(i)}\}_{i=1}^{N}$を得る.
+\begin{align}
+  x_{t|t-1}^{(i)}
+  =f_{t}(x_{t-1|t-1}^{(i)},\upsilon_{t}^{(i)}),\hspace{0.5cm}\upsilon_{t}^{(i)}\sim q_{t}(\upsilon_{t})
+\end{align}
+手続きとしては2ステップである.
+\begin{enumerate}
+  \item $\upsilon_{t}^{(i)}\sim q_{t}(\upsilon_{t})$に従うシステムノイズのアンサンブル$\{\upsilon_{t}^{(i)}\}_{i=1}^{N}$を生成する
+  \item 各$i$に対して$x_{t|t-1}^{(i)}=f_{t}(x_{t-1|t-1}^{(i)},\upsilon_{t}^{(i)})$を計算する
+\end{enumerate}
+一期先予測を求める際、アンサンブルメンバーを$f_{t}(x_{t-1},\upsilon_{t})$にそのまま代入している為$f_{t}$の線形化が不要となる.
+\begin{align}
+  p(x_{t}|y_{1:t-1})
+  &=\int p(x_{t}|x_{t-1},y_{1:t-1})p(x_{t-1}|y_{1:t-1})dx_{t-1}\nonumber\\
+  &=\int p(x_{t}|x_{t-1})p(x_{t-1}|y_{1:t-1})dx_{t-1}\\
+  &=\int\left\{ \int p(x_{t},\upsilon_{t}|x_{t-1})d\upsilon_{t}\right\}p(x_{t-1}|y_{1:t-1})dx_{t-1}\\
+  &=\int\left\{ \int p(x_{t}|x_{t-1},\upsilon_{t})p(\upsilon_{t}|x_{t-1})d\upsilon_{t}\right\}p(x_{t-1}|y_{1:t-1})dx_{t-1}\\
+  &=\int \int p(x_{t}|x_{t-1},\upsilon_{t})p(\upsilon_{t}|x_{t-1})p(x_{t-1}|y_{1:t-1})dx_{t-1}d\upsilon_{t}
+\end{align}
+$\upsilon_{t}$と$y_{1:t-1}$,$\upsilon_{t}$と$x_{t-1}$はそれぞれ独立なので、
+\begin{align*}
+  p(\upsilon_{t}|x_{t-1})p(x_{t-1}|y_{1:t-1})
+  &=p(\upsilon_{t})p(x_{t-1}|y_{1:t-1})\\
+  &=p(x_{t-1},\upsilon_{t}|y_{1:t-1})\\
+  &\doteq \frac{1}{N}\sum_{i=1}^{N}\delta\left(
+	\left(
+\begin{array}{c}
+  x_{t-1}\\
+  \upsilon_{t}
+\end{array}
+  \right)
+  -\left(
+	\begin{array}{c}
+	x_{t-1|t-1}^{(i)}\\
+	\upsilon_{t}^{(i)}
+  \end{array}
+  \right)
+\right)\footnotemark[3]
+\end{align*}
+\footnotetext[3]{$x_{t-1}$と$\varupsilon_{t}$は独立なので$\delta\left(
+	\left(
+\begin{array}{c}
+  x_{t-1}\\
+  \upsilon_{t}
+\end{array}
+  \right)
+  -\left(
+	\begin{array}{c}
+	x_{t-1|t-1}\\
+  \upsilon_{t}
+  \end{array}
+\right)^{(i)}
+\right)=\delta\left(
+	\left(
+\begin{array}{c}
+  x_{t-1}\\
+  \upsilon_{t}
+\end{array}
+  \right)
+  -\left(
+	\begin{array}{c}
+	x_{t-1|t-1}^{(i)}\\
+	\upsilon_{t}^{(i)}
+  \end{array}
+  \right)
+\right)$}
+\subsection{フィルタリング}
+\begin{equation}
+  p(x_{t}|y_{1:t})=\frac{p(y_{t}|x_{t})p(x_{t}|y_{1:t-1})}{\int p(y_{t}|x_{t})p(x_{t}|y_{1:t-1})dx_{t}}
+\end{equation}
+(4.2)式に予測分布の近似式(4.2)式を代入する.
+\begin{align*}
+  p(x_{t}|y_{1:t})
+  \doteq \frac{p(y_{t}|x_{t})p(x_{t}|y_{1:t-1})}{\int p(y_{t}|x_{t})p(x_{t}|y_{1:t-1})dx_{t}}
+\end{align*}
+\begin{align}
+  p(x_{t}|y_{1:t})
+  &\doteq \sum_{i=1}^{N}\frac{w_{t}^{(i)}}{\sum_{i=1}^{M}w_{t}^{(i)}}\delta(x_{t}-x_{t|t-1}^{(i)})\\
+  p(x_{t}|y_{1:t})
+  &\doteq \frac{1}{M}\sum_{i=1}^{M}\delta(x_{t}-\hat{x_{t}}^{(i)})
+\end{align}
+\newpage
+\begin{thebibliography}{5}
+  \bibitem{1}樋口知之『データ同化入門』
+\end{thebibliography}
+\end{document}

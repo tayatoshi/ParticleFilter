@@ -35,7 +35,7 @@ class ParticleFilter:
         self.omega2=omega2
         self.filtered_value = np.zeros(self.length)
         print('OK!!')
-        
+
     def init_particle(self):
         # x(i)_0|0
         particles = []
@@ -44,18 +44,18 @@ class ParticleFilter:
         particles.append(init)
         predicts.append(init)
         return({'particles':particles,'predicts':predicts})
-    
+
     def get_likelihood(self,ensemble,t):
         #今回は正規分布を仮定
         likelihoodes=(1/np.sqrt(2*np.pi*self.omega2))*np.exp((-1/(2*self.omega2))*((self.y[t]-ensemble[t])**2))
         return(likelihoodes)
-    
+
     def one_predict(self,ensemble,t):
         # x(i)_t|t-1
         noise=np.random.normal(0,np.sqrt(self.upsilon2),self.n_particle)
         predict=ensemble[t]+noise
         return(predict)
-    
+
     def filtering(self,ensemble,t):
         # x(i)_t|t
         likelihood=self.get_likelihood(ensemble,t)
@@ -63,14 +63,14 @@ class ParticleFilter:
         #print('beta',beta)
         filtering_value=np.sum(beta*ensemble[t])
         return({'beta':beta,'filtering_value':filtering_value})
-    
+
     def resumpling(self,ensemble,weight):
         # sample=np.zeros(self.n_particle)
         # for i in range(self.n_particle):
             # sample[i]=np.random.choice(ensemble,p=weight)
         sample=np.random.choice(ensemble,p=weight,size=self.n_particle)
         return(sample)
-    
+
     def simulate(self,seed=123):
         np.random.seed(seed)
         particles=self.init_particle()['particles']
