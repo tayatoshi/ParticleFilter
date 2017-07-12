@@ -1,9 +1,9 @@
 # Fdb version 3
-["dvipdf"] 1497763055 "main.dvi" "main.pdf" "main" 1497763055
-  "main.dvi" 1497763054 19076 053894c813cd8d05a2e48c268eebe41b "latex"
+["dvipdf"] 1499597576 "main.dvi" "main.pdf" "main" 1499597577
+  "main.dvi" 1499597576 19076 cf843a0c97ef5b3bdb97f43042f98374 "latex"
   (generated)
   "main.pdf"
-["latex"] 1497763054 "main.tex" "main.dvi" "main" 1497763055
+["latex"] 1499597576 "main.tex" "main.dvi" "main" 1499597577
   "/usr/local/texlive/2016/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2016/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -53,11 +53,11 @@
   "/usr/local/texlive/2016/texmf-dist/web2c/texmf.cnf" 1463093894 31953 b9489e6e586f798610c60aec1f5ec548 ""
   "/usr/local/texlive/2016/texmf-var/web2c/euptex/uplatex.fmt" 1463979165 4047635 131d4e53fdf20be13835279df18dce72 ""
   "/usr/local/texlive/2016/texmf.cnf" 1463979140 577 2938757e76f31531e65cc647e3507693 ""
-  "main.aux" 1497763054 1310 c57b97f792ce2cf810a5bc71db422c59 ""
-  "main.out" 1497763054 413 5e7dfe6ac62a1e7b86c69e3a60a4b40e ""
-  "main.tex" 1497763052 8553 e56127b2715fe08f1aae9a0c2a7e12cb ""
+  "main.aux" 1499597576 1310 c57b97f792ce2cf810a5bc71db422c59 ""
+  "main.out" 1499597576 413 5e7dfe6ac62a1e7b86c69e3a60a4b40e ""
+  "main.tex" 1499597574 8556 815ace9bf41ffa69a6ac0266bf4bb1d8 ""
   (generated)
-  "main.out"
-  "main.log"
-  "main.dvi"
   "main.aux"
+  "main.dvi"
+  "main.log"
+  "main.out"
