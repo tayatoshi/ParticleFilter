@@ -8,11 +8,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
-pddata=pd.read_csv('data.csv')
-print(pddata.head())
+pddata=pd.read_csv('Nile.csv')
+print(pddata.iloc[:,1].head())
 pddata.plot(figsize=(12,4))
 plt.show()
-data=np.array(pddata)
+data=np.array(pddata.iloc[:,1])
 
 
 # ### 非線形・非ガウス状態空間モデル
@@ -35,27 +35,27 @@ class ParticleFilter:
         self.omega2=omega2
         self.filtered_value = np.zeros(self.length)
         print('OK!!')
-
+        
     def init_particle(self):
         # x(i)_0|0
         particles = []
         predicts = []
-        init=np.random.uniform(-2,2,self.n_particle)
+        init=np.random.uniform(400,1600,self.n_particle)
         particles.append(init)
         predicts.append(init)
         return({'particles':particles,'predicts':predicts})
-
+    
     def get_likelihood(self,ensemble,t):
         #今回は正規分布を仮定
         likelihoodes=(1/np.sqrt(2*np.pi*self.omega2))*np.exp((-1/(2*self.omega2))*((self.y[t]-ensemble[t])**2))
         return(likelihoodes)
-
+    
     def one_predict(self,ensemble,t):
         # x(i)_t|t-1
         noise=np.random.normal(0,np.sqrt(self.upsilon2),self.n_particle)
         predict=ensemble[t]+noise
         return(predict)
-
+    
     def filtering(self,ensemble,t):
         # x(i)_t|t
         likelihood=self.get_likelihood(ensemble,t)
@@ -63,14 +63,14 @@ class ParticleFilter:
         #print('beta',beta)
         filtering_value=np.sum(beta*ensemble[t])
         return({'beta':beta,'filtering_value':filtering_value})
-
+    
     def resumpling(self,ensemble,weight):
         # sample=np.zeros(self.n_particle)
         # for i in range(self.n_particle):
             # sample[i]=np.random.choice(ensemble,p=weight)
         sample=np.random.choice(ensemble,p=weight,size=self.n_particle)
         return(sample)
-
+    
     def simulate(self,seed=123):
         np.random.seed(seed)
         particles=self.init_particle()['particles']
@@ -91,7 +91,7 @@ class ParticleFilter:
 
 # In[ ]:
 
-model=ParticleFilter(data,10000,(2**-2)*(10**-1),2**-2)
+model=ParticleFilter(data,10000,np.exp(7.3),np.exp(9.63))
 
 
 # In[ ]:
@@ -101,14 +101,25 @@ result=model.simulate()
 
 # In[ ]:
 
-plt.figure(figsize=(20,9))
+#plt.figure(figsize=(20,9))
 for i in range(len(pddata)):
     if i==0:
         plt.scatter(np.zeros(len(result['particles'][i]))+i,result['particles'][i],s=1,color='red',alpha=0.1,label='particle')
     plt.scatter(np.zeros(len(result['particles'][i]))+i,result['particles'][i],s=1,color='red',alpha=0.1)
-plt.plot(pddata,color='blue',label='y')
+plt.plot(data,color='blue',label='y')
 plt.plot(result['filtered_value'],color='green',label='estimate')
 plt.legend()
+plt.ylim(400,2000)
 plt.title('particles = {}, upsilon2 = {}, omega2 = {}'.format(model.n_particle,model.upsilon2,model.omega2))
 plt.show()
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
 
